@@ -1,0 +1,52 @@
+pipeline {
+     agent any
+     stages {
+         stage('Lint HTML') {
+              steps {
+                  sh 'tidy -q -e *.html'
+              }
+         }
+         stage('Build Docker Image') {
+              steps {
+                  sh 'docker build -t capstone02 .'
+              }
+         }
+         stage('Push Docker Image') {
+              steps {
+                  withDockerRegistry([url: "", credentialsId: "rohan2907"]) {
+                      sh "docker tag capstone02 rohan2907/capstone02"
+                      sh 'docker push rohan2907/capstone02'
+                  }
+              }
+         }
+         stage('Deploying docker container') {
+              steps{
+                  echo 'Deploying to AWS...'
+                  withAWS(credentials: 'capstone', region: 'us-east-2') {
+                      sh "aws eks --region us-east-2 update-kubeconfig --name ferocious-party-1597055883"
+                      sh "kubectl apply -f deployment.yml"
+		      sh "sleep 2m"
+                      sh "kubectl rollout status deployment.v1.apps/capstone-deployment"
+		      sh "kubectl get deployment"
+		      sh "kubectl get rs"
+                      sh "kubectl get pods"
+                      sh "kubectl get svc"
+                  }
+              }
+        }
+        stage('Rolling Deployment') {
+              steps{
+                  echo 'Deploying to AWS...'
+                  withAWS(credentials: 'capstone', region: 'us-east-2') {
+                      sh "kubectl set image deployments/capstone-deployment capstone02=rohan2907/capstonev2:latest"
+		      sh "sleep 2m"
+                      sh "kubectl rollout status deployment.v1.apps/capstone-deployment"
+		      sh "kubectl get deployment"
+                      sh "kubectl get rs"
+                      sh "kubectl get pods"
+                      sh "kubectl get svc"
+                  }
+              }
+        }
+     }
+}

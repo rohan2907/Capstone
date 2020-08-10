@@ -1,0 +1,15 @@
+Created cluster using below command:
+
+eksctl create cluster
+--name ekscluster01 
+--version 1.16 
+--nodegroup-name eksnodegroup 
+--node-type t2.medium 
+--nodes 3 
+--nodes-min 1 
+--nodes-max 4 
+--node-ami auto 
+--region us-east-2  
+
+Note : I have rebooted the ec2 instance in the end of project completion as it was stuck and due to which the new external IP is changed at the end.
+August 10, 2020 at 8:14:53 PM UTC+5:30 (less than one hour)
